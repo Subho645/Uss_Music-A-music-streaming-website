@@ -1,16 +1,18 @@
 import './App.css';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 function App() {
   const [tracks, setTracks] = useState([]);
   const [keyword, setKeyword] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [currentAudio, setCurrentAudio] = useState(null); // State to keep track of the currently playing audio
 
   const getTracks = async () => {
     setIsLoading(true);
     try {
-      let data = await fetch(`https://v1.nocodeapi.com/subho69/spotify/yjlWeEqOsjswacSp/search?q=${keyword===""?"trending":keyword}&type=track`);
+      let data = await fetch(`https://v1.nocodeapi.com/subho69/spotify/yjlWeEqOsjswacSp/search?q=${keyword === "" ? "trending" : keyword}&type=track`);
       let convertData = await data.json();
+      console.log(convertData);
       if (convertData.tracks && convertData.tracks.items) {
         setTracks(convertData.tracks.items);
       } else {
@@ -27,6 +29,14 @@ function App() {
   useEffect(() => {
     getTracks();
   }, []);
+
+  const handlePlay = (audio) => {
+    if (currentAudio && currentAudio !== audio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    }
+    setCurrentAudio(audio);
+  };
 
   return (
     <>
@@ -56,6 +66,11 @@ function App() {
               type="search"
               placeholder="Search"
               aria-label="Search"
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  getTracks();
+                }
+              }}
             />
             <button onClick={getTracks} className="btn btn-success">
               Search
@@ -94,6 +109,7 @@ function App() {
                         src={element.preview_url}
                         controls
                         className="w-100"
+                        onPlay={(event) => handlePlay(event.target)}
                       ></audio>
                     </div>
                   </div>
